@@ -57,7 +57,7 @@ fn main() -> Result<()> {
 
     println!(r#"{{| class="wikitable sortable" style="margin-left:0""#);
     println!("|-");
-    println!(r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined"#);
+    println!(r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined !! Spawners mined"#);
     for stat in stats {
         println!("|-");
         println!("{}", &stat);
@@ -212,7 +212,9 @@ struct Mined {
     #[serde(rename = "minecraft:cobblestone", default)]
     cobblestone: u64,
     #[serde(rename = "minecraft:netherrack", default)]
-    netherrack: u64,
+    netherrack: u64,,
+    #[serde(rename = "minecraft:spawner", default)]
+    spawner: u64,
 }
 
 /// Represents stats files in the old pre 1.13 format
@@ -354,7 +356,7 @@ impl Player {
 impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/59 || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined}",
+               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/67 || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined}",
                playername=self.playername,
                playtime=(self.stats.custom.play_time + self.oldstats.play_time) / (20 * 60 * 60),
                leavegame=self.stats.custom.leave_game + self.oldstats.leave_game,
@@ -370,7 +372,8 @@ impl fmt::Display for Player {
                stonemined=self.stats.mined.stone,
                obsidianmined=self.stats.mined.obsidian,
                cobblestonemined=self.stats.mined.cobblestone,
-               netherrackmined=self.stats.mined.netherrack)
+               netherrackmined=self.stats.mined.netherrack,
+               spawnermined=self.stats.mined.spawner)
     }
 }
 
