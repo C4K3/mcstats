@@ -219,6 +219,14 @@ struct Mined {
     netherrack: u64,
     #[serde(rename = "minecraft:spawner", default)]
     spawner: u64,
+    #[serde(rename = "minecraft:sand", default)]
+    sand: u64,
+    #[serde(rename = "minecraft:dirt", default)]
+    dirt: u64,
+    #[serde(rename = "minecraft:grass_block", default)]
+    grass_block: u64,
+    #[serde(rename = "minecraft:ancient_debris", default)]
+    ancient_debris: u64,
 }
 
 #[derive(Deserialize, Default, Debug, PartialEq, Eq)]
@@ -376,7 +384,7 @@ impl Player {
 impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/81 || {traded_with_villager} || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined} || {ender_dragon} || {wither} || {elder_guardian} || {evoker} || {skeleton_horse} || {piglin_brute}",
+               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/81 || {traded_with_villager} || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined} || {ender_dragon} || {wither} || {elder_guardian} || {evoker} || {skeleton_horse} || {piglin_brute} || {sandmined} || {dirtmined} || grass_blockmined} || {ancient_debrismined}",
                playername=self.playername,
                playtime=(self.stats.custom.play_time + self.oldstats.play_time) / (20 * 60 * 60),
                leavegame=self.stats.custom.leave_game + self.oldstats.leave_game,
@@ -400,7 +408,11 @@ impl fmt::Display for Player {
                elder_guardian=self.stats.killed.elder_guardian,
                evoker=self.stats.killed.evoker,
                skeleton_horse=self.stats.killed.skeleton_horse,
-               piglin_brute=self.stats.killed.piglin_brute)
+               piglin_brute=self.stats.killed.piglin_brute
+               sandmined=self.stats.mined.sand,
+               dirtmined=self.stats.mined.dirt,
+               grass_blockmined=self.stats.mined.grass_block
+               ancient_debrismined=self.stats.mined.ancient_debris)
     }
 }
 
