@@ -57,7 +57,7 @@ fn main() -> Result<()> {
 
     println!(r#"{{| class="wikitable sortable" style="margin-left:0""#);
     println!("|-");
-    println!(r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Villagers Traded With !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined !! Spawners mined !! Ender Dragons Killed !! Withers Killed !! Elder Guardians Killed !! Evokers Killed !! Skeleton Horses Killed !! Piglin Brutes Killed !! Dirt Mined !! Sand Mined"#);
+    println!(r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Villagers Traded With !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined !! Spawners mined !! Ender Dragons Killed !! Withers Killed !! Elder Guardians Killed !! Evokers Killed !! Skeleton Horses Killed !! Piglin Brutes Killed !! Dirt mined !! Sand mined"#);
     for stat in stats {
         println!("|-");
         println!("{}", &stat);
