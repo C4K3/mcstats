@@ -404,8 +404,8 @@ impl fmt::Display for Player {
                elder_guardian=self.stats.killed.elder_guardian,
                evoker=self.stats.killed.evoker,
                skeleton_horse=self.stats.killed.skeleton_horse,
-               piglin_brute=self.stats.killed.piglin_brute
-               dirtmined=self.stats.mined.dirt
+               piglin_brute=self.stats.killed.piglin_brute,
+               dirtmined=self.stats.mined.dirt,
                sandmined=self.stats.mined.sand)
     }
 }
