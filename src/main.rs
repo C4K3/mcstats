@@ -57,7 +57,7 @@ fn main() -> Result<()> {
 
     println!(r#"{{| class="wikitable sortable" style="margin-left:0""#);
     println!("|-");
-    println!(r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Villagers Traded With !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined !! Spawners mined !! Ender Dragons Killed !! Withers Killed !! Elder Guardians Killed !! Evokers Killed !! Skeleton Horses Killed !! Piglin Brutes Killed !! Dirt mined !! Sand mined"#);
+    println!(r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Villagers Traded With !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined !! Spawners mined !! Ender Dragons Killed !! Withers Killed !! Elder Guardians Killed !! Evokers Killed !! Skeleton Horses Killed !! Piglin Brutes Killed !! Dirt Mined !! Sand Mined !! End Stone Mined !! Totems Popped"#);
     for stat in stats {
         println!("|-");
         println!("{}", &stat);
@@ -155,6 +155,9 @@ struct Stats {
     killed: Killed,
     #[serde(rename = "minecraft:mined", default)]
     mined: Mined,
+    #[serde(rename = "minecraft:used", default)]
+    used: Used,
+
 }
 
 #[derive(Deserialize, Default, Debug, PartialEq, Eq)]
@@ -223,6 +226,8 @@ struct Mined {
     dirt: u64,
     #[serde(rename = "minecraft:sand", default)]
     sand: u64,
+    #[serde(rename = "minecraft:end_stone", default)]
+    end_stone: u64,
 }
 
 #[derive(Deserialize, Default, Debug, PartialEq, Eq)]
@@ -239,9 +244,15 @@ struct Killed {
     skeleton_horse: u64,
     #[serde(rename = "minecraft:piglin_brute", default)]
     piglin_brute: u64,
+    }
+
+#[derive(Deserialize, Default, Debug, PartialEq, Eq)]
+struct Used {
+    #[serde(rename = "minecraft:totem_of_undying", default)]
+    totem_of_undying: u64,
 }
 
-/// Represents stats files in the old pre 1.13 format
+    /// Represents stats files in the old pre 1.13 format
 #[derive(Deserialize, Default, Debug, PartialEq, Eq)]
 struct OldStats {
     #[serde(rename = "stat.playOneMinute", default)]
@@ -380,7 +391,7 @@ impl Player {
 impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/81 || {traded_with_villager} || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined} || {ender_dragon} || {wither} || {elder_guardian} || {evoker} || {skeleton_horse} || {piglin_brute} || {dirtmined} || {sandmined}",
+               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/81 || {traded_with_villager} || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined} || {ender_dragon} || {wither} || {elder_guardian} || {evoker} || {skeleton_horse} || {piglin_brute} || {dirtmined} || {sandmined} || {end_stonemined} !! {totem_of_undying}",
                playername=self.playername,
                playtime=(self.stats.custom.play_time + self.oldstats.play_time) / (20 * 60 * 60),
                leavegame=self.stats.custom.leave_game + self.oldstats.leave_game,
@@ -406,7 +417,9 @@ impl fmt::Display for Player {
                skeleton_horse=self.stats.killed.skeleton_horse,
                piglin_brute=self.stats.killed.piglin_brute,
                dirtmined=self.stats.mined.dirt,
-               sandmined=self.stats.mined.sand)
+               sandmined=self.stats.mined.sand,
+               end_stonemined=self.stats.mined.end_stone,
+               totem_of_undying=self.stats.used.totem_of_undying)
     }
 }
 
@@ -427,3 +440,7 @@ impl PartialOrd for Player {
         Some(self.cmp(other))
     }
 }
+
+extension.CompileRun
+
+
