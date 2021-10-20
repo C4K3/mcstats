@@ -8,9 +8,10 @@ extern crate failure;
 
 use std::cmp::Ordering;
 use std::fmt;
-use std::fs::File;
 use std::fs;
+use std::fs::File;
 use std::io::prelude::*;
+use std::path::Path;
 use std::path::PathBuf;
 
 use serde_json::Value;
@@ -27,8 +28,9 @@ fn main() -> Result<()> {
     let mut stats = Vec::with_capacity(files.len());
 
     for file in files {
-        stats.push(Player::new(&file)
-                   .with_context(|_| format!("while handling player from file {}", file.to_string_lossy()))?);
+        stats.push(Player::new(&file).with_context(|_| {
+            format!("while handling player from file {}", file.to_string_lossy())
+        })?);
     }
 
     stats.sort();
@@ -57,7 +59,9 @@ fn main() -> Result<()> {
 
     println!(r#"{{| class="wikitable sortable" style="margin-left:0""#);
     println!("|-");
-    println!(r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Villagers Traded With !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined !! Spawners mined !! Ender Dragons Killed !! Withers Killed !! Elder Guardians Killed !! Evokers Killed !! Skeleton Horses Killed !! Piglin Brutes Killed !! Dirt mined !! Sand mined"#);
+    println!(
+        r#"! Player !! Play time (hours) !! Games quit !! Jumps !! Deaths !! Damage taken (half hearts) !! Damage dealt (half hearts) !! Mob kills !! Player kills !! Traveled (km) !! Cake slices eaten !!data-sort-type="number" | Advancements !! Villagers Traded With !! Stone Mined !! Obsidian Mined !! Cobblestone mined !! Netherrack mined !! Spawners mined !! Ender Dragons Killed !! Withers Killed !! Elder Guardians Killed !! Evokers Killed !! Skeleton Horses Killed !! Piglin Brutes Killed !! Dirt mined !! Sand mined"#
+    );
     for stat in stats {
         println!("|-");
         println!("{}", &stat);
@@ -70,23 +74,23 @@ fn main() -> Result<()> {
 /// Returns a list of paths to each of the json files in the stats directory
 fn list_stats_files(dir: &str) -> Result<Vec<PathBuf>> {
     Ok(fs::read_dir(dir)?
-       .map(|x| x.unwrap().path().to_path_buf())
-       .filter(|x| {
-           match x.file_name() {
-               /* json stats file names have exactly 41 characters */
-               Some(name) if name.len() == 41 => (),
-               _ => return false,
-           }
-           match x.extension() {
-               Some(extension) if extension == "json" => true,
-               _ => false,
-           }
-       })
-       .collect())
+        .map(|x| x.unwrap().path())
+        .filter(|x| {
+            match x.file_name() {
+                /* json stats file names have exactly 41 characters */
+                Some(name) if name.len() == 41 => (),
+                _ => return false,
+            }
+            match x.extension() {
+                Some(extension) if extension == "json" => true,
+                _ => false,
+            }
+        })
+        .collect())
 }
 
 /// Read the given advancements file, returning the number of gained achievements
-fn count_advancements(path: &PathBuf) -> Result<u64> {
+fn count_advancements(path: &Path) -> Result<u64> {
     let mut f = match File::open(path) {
         Ok(f) => f,
         /* If file is not found, the player has 0 advancements.
@@ -94,10 +98,10 @@ fn count_advancements(path: &PathBuf) -> Result<u64> {
          * were added to the game */
         Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {
             return Ok(0);
-        },
+        }
         Err(e) => {
-            panic!(e);
-        },
+            panic!("{}", e);
+        }
     };
     let mut tmp = String::new();
     f.read_to_string(&mut tmp)?;
@@ -109,13 +113,13 @@ fn count_advancements(path: &PathBuf) -> Result<u64> {
     let mut count = 0;
 
     for (name, value) in json {
-        if name.starts_with("minecraft:story") ||
-            name.starts_with("minecraft:nether") ||
-            name.starts_with("minecraft:end") ||
-            name.starts_with("minecraft:adventure") ||
-            name.starts_with("minecraft:husbandry")
-        { }
-        else {
+        if name.starts_with("minecraft:story")
+            || name.starts_with("minecraft:nether")
+            || name.starts_with("minecraft:end")
+            || name.starts_with("minecraft:adventure")
+            || name.starts_with("minecraft:husbandry")
+        {
+        } else {
             continue;
         }
 
@@ -124,7 +128,7 @@ fn count_advancements(path: &PathBuf) -> Result<u64> {
                 if x.as_bool().expect("wasn't really bool") {
                     count += 1;
                 }
-            },
+            }
             _ => (),
         }
     }
@@ -292,7 +296,7 @@ struct OldStats {
 
 impl Player {
     /// Create a Player struct using the path to the player's stats file as input
-    fn new(path: &PathBuf) -> Result<Self> {
+    fn new(path: &Path) -> Result<Self> {
         let uuid = match path.file_stem() {
             Some(x) => x.to_str().expect("Invalid player uuid").to_string(),
             None => bail!("File name did not contain a uuid"),
@@ -304,7 +308,7 @@ impl Player {
         let mut ret: Player = serde_json::from_str(&tmp)?;
 
         let advancements_path = {
-            let mut path = path.clone();
+            let mut path = path.to_owned();
             assert!(path.pop()); /* assert so that we unwind if path is empty */
             assert!(path.pop()); /* and we pop twice to remove both uuid.json and stats */
             path.push("advancements");
@@ -320,10 +324,18 @@ impl Player {
 
     /// Set the player's name
     fn set_player_name(&mut self) -> Result<()> {
-        let mut f = File::open(format!("./playerdata/{}.dat", self.uuid))
-            .with_context(|_| format!("while trying to open playerdata file for player with uuid {}", self.uuid))?;
-        let nbt = nbt::Blob::from_gzip(&mut f)
-            .with_context(|_| format!("while trying to parse playerdata file for player with uuid {}", self.uuid))?;
+        let mut f = File::open(format!("./playerdata/{}.dat", self.uuid)).with_context(|_| {
+            format!(
+                "while trying to open playerdata file for player with uuid {}",
+                self.uuid
+            )
+        })?;
+        let nbt = nbt::Blob::from_gzip(&mut f).with_context(|_| {
+            format!(
+                "while trying to parse playerdata file for player with uuid {}",
+                self.uuid
+            )
+        })?;
 
         let nbt = match nbt["bukkit"] {
             nbt::Value::Compound(ref x) => x.clone(),
@@ -372,8 +384,8 @@ impl Player {
             + b.boat
             + b.pig
             + b.horse
-            + b.aviate
-            ) / (100 * 1000)
+            + b.aviate)
+            / (100 * 1000)
     }
 }
 
@@ -415,9 +427,7 @@ impl Ord for Player {
         let a_playtime = self.stats.custom.play_time + self.oldstats.play_time;
         let b_playtime = other.stats.custom.play_time + other.oldstats.play_time;
         match b_playtime.cmp(&a_playtime) {
-            Ordering::Equal => {
-                self.uuid.cmp(&other.uuid)
-            }
+            Ordering::Equal => self.uuid.cmp(&other.uuid),
             x => x,
         }
     }
