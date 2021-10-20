@@ -163,8 +163,10 @@ struct Stats {
 
 #[derive(Deserialize, Default, Debug, PartialEq, Eq)]
 struct Custom {
-    #[serde(rename = "minecraft:play_one_minute")]
+    #[serde(rename = "minecraft:play_time", default)]
     play_time: u64,
+    #[serde(rename = "minecraft:play_one_minute", default)]
+    play_one_minute: u64,
     #[serde(rename = "minecraft:jump", default)]
     jumps: u64,
     #[serde(rename = "minecraft:deaths", default)]
@@ -394,7 +396,7 @@ impl fmt::Display for Player {
         write!(f,
                "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/81 || {traded_with_villager} || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined} || {ender_dragon} || {wither} || {elder_guardian} || {evoker} || {skeleton_horse} || {piglin_brute} || {dirtmined} || {sandmined}",
                playername=self.playername,
-               playtime=(self.stats.custom.play_time + self.oldstats.play_time) / (20 * 60 * 60),
+               playtime=(self.stats.custom.play_time + self.stats.custom.play_one_minute + self.oldstats.play_time) / (20 * 60 * 60),
                leavegame=self.stats.custom.leave_game + self.oldstats.leave_game,
                jump=self.stats.custom.jumps + self.oldstats.jumps,
                deaths=self.stats.custom.deaths + self.oldstats.deaths,
@@ -424,8 +426,12 @@ impl fmt::Display for Player {
 
 impl Ord for Player {
     fn cmp(&self, other: &Player) -> Ordering {
-        let a_playtime = self.stats.custom.play_time + self.oldstats.play_time;
-        let b_playtime = other.stats.custom.play_time + other.oldstats.play_time;
+        let a_playtime = self.stats.custom.play_time
+            + self.stats.custom.play_one_minute
+            + self.oldstats.play_time;
+        let b_playtime = other.stats.custom.play_time
+            + other.stats.custom.play_one_minute
+            + other.oldstats.play_time;
         match b_playtime.cmp(&a_playtime) {
             Ordering::Equal => self.uuid.cmp(&other.uuid),
             x => x,
