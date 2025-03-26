@@ -7,10 +7,12 @@ extern crate serde_derive;
 extern crate failure;
 
 use std::cmp::Ordering;
+use std::collections::HashSet;
 use std::fmt;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::BufReader;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -23,14 +25,22 @@ const AMOUNT: usize = 300;
 type Result<T> = std::result::Result<T, failure::Error>;
 
 fn main() -> Result<()> {
+    let ignore_players = read_ignore_players()?;
+
     let files = list_stats_files("./stats").unwrap();
 
     let mut stats = Vec::with_capacity(files.len());
 
     for file in files {
-        stats.push(Player::new(&file).with_context(|_| {
+        let player = Player::new(&file).with_context(|_| {
             format!("while handling player from file {}", file.to_string_lossy())
-        })?);
+        })?;
+
+        if ignore_players.contains(&player.uuid) {
+            continue;
+        }
+
+        stats.push(player);
     }
 
     stats.sort();
@@ -442,4 +452,22 @@ impl PartialOrd for Player {
     fn partial_cmp(&self, other: &Player) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+/// Reads the mcstats_ignored.txt file and returns each line in it as a HashSet
+///
+/// This file is intended to contain a list of playernames who are to be skipped.
+fn read_ignore_players() -> Result<HashSet<String>> {
+    let f = match File::open("mcstats_ignored.txt") {
+        Ok(f) => BufReader::new(f),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            // Ignore file not found errors
+            return Ok(HashSet::new());
+        }
+        Err(e) => return Err(e.into()),
+    };
+
+    f.lines()
+        .map(|x| x.map_err(Into::into))
+        .collect::<Result<HashSet<String>>>()
 }
