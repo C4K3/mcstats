@@ -1,4 +1,4 @@
-extern crate nbt;
+extern crate nbted;
 extern crate serde;
 extern crate serde_json;
 #[macro_use]
@@ -17,6 +17,8 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use serde_json::Value;
+
+use nbted::unstable::data::NBT;
 
 use failure::ResultExt;
 
@@ -336,31 +338,31 @@ impl Player {
 
     /// Set the player's name
     fn set_player_name(&mut self) -> Result<()> {
-        let mut f = File::open(format!("./playerdata/{}.dat", self.uuid)).with_context(|_| {
+        let f = File::open(format!("./playerdata/{}.dat", self.uuid)).with_context(|_| {
             format!(
                 "while trying to open playerdata file for player with uuid {}",
                 self.uuid
             )
         })?;
-        let nbt = nbt::Blob::from_gzip(&mut f).with_context(|_| {
+        let mut f = BufReader::new(f);
+        let nbt = nbted::unstable::read::read_file(&mut f).with_context(|_| {
             format!(
                 "while trying to parse playerdata file for player with uuid {}",
                 self.uuid
             )
         })?;
 
-        let nbt = match nbt["bukkit"] {
-            nbt::Value::Compound(ref x) => x.clone(),
-            _ => bail!("Could not find bukkit compound in NBT"),
-        };
-        let name = match nbt.get("lastKnownName") {
+        let nbt = nbt.root.get_err(b"")?;
+        let nbt = nbt.get_err(b"bukkit")?;
+        let name = match nbt.get(b"lastKnownName") {
             Some(x) => x.clone(),
             None => bail!("lastKnownName not found in NBT"),
         };
         let name = match name {
-            nbt::Value::String(ref x) => x.clone(),
+            NBT::String(ref x) => x.clone(),
             _ => bail!("lastKnownName had invalid type in NBT"),
         };
+        let name = String::from_utf8(name)?;
 
         self.playername = name;
 
