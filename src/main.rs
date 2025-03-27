@@ -406,7 +406,7 @@ impl Player {
 impl fmt::Display for Player {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/81 || {traded_with_villager} || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined} || {ender_dragon} || {wither} || {elder_guardian} || {evoker} || {skeleton_horse} || {piglin_brute} || {dirtmined} || {sandmined}",
+               "| [[{playername}]] || {playtime} || {leavegame} || {jump} || {deaths} || {damagetaken} || {damagedealt} || {mobkills} || {playerkills} || {distance} || {cakeslices} || {advancements}/122 || {traded_with_villager} || {stonemined} || {obsidianmined} || {cobblestonemined} || {netherrackmined} || {spawnermined} || {ender_dragon} || {wither} || {elder_guardian} || {evoker} || {skeleton_horse} || {piglin_brute} || {dirtmined} || {sandmined}",
                playername=self.playername,
                playtime=(self.stats.custom.play_time + self.stats.custom.play_one_minute + self.oldstats.play_time) / (20 * 60 * 60),
                leavegame=self.stats.custom.leave_game + self.oldstats.leave_game,
